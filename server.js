@@ -111,7 +111,77 @@ EXECUTE FUNCTION trigger_set_timestamp();
     await pool.query(ddl);
     res.json({ ok: true, message: 'Migração executada (Postgres DDL aplicada).' });
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    // Se falhar por causa de permissões para criar extensões (ex: uuid-ossp não permitido)
+    // tentamos uma DDL alternativa sem CREATE EXTENSION e sem default uuid_generate_v4().
+    console.warn('Migração completa falhou, tentando fallback sem extensão:', err.message);
+    try {
+      const fallback = `
+/* Fallback migration: removida instrução CREATE EXTENSION e default uuid_generate_v4() */
+
+CREATE TABLE IF NOT EXISTS users (
+  email TEXT PRIMARY KEY,
+  name TEXT,
+  currency CHAR(3) DEFAULT 'BRL',
+  theme TEXT,
+  pin_hash TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS categorias (
+  id TEXT PRIMARY KEY,
+  user_email TEXT REFERENCES users(email) ON DELETE CASCADE,
+  nome TEXT NOT NULL,
+  icone TEXT,
+  tipo TEXT NOT NULL CHECK (tipo IN ('entrada', 'saida')),
+  custom BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS transacoes (
+  id BIGINT PRIMARY KEY,
+  uuid UUID,
+  user_email TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE,
+  tipo TEXT NOT NULL CHECK (tipo IN ('entrada', 'saida')),
+  descricao TEXT NOT NULL,
+  valor NUMERIC(14,2) NOT NULL CHECK (valor >= 0),
+  data DATE NOT NULL,
+  categoria_id TEXT,
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT now(),
+  metadata JSONB,
+  deleted BOOLEAN DEFAULT false,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE IF EXISTS transacoes
+  ADD CONSTRAINT IF NOT EXISTS fk_categoria
+  FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_transacoes_user_date ON transacoes (user_email, data DESC);
+CREATE INDEX IF NOT EXISTS idx_transacoes_user_tipo ON transacoes (user_email, tipo);
+CREATE INDEX IF NOT EXISTS idx_transacoes_categoria ON transacoes (categoria_id);
+CREATE INDEX IF NOT EXISTS idx_transacoes_ts ON transacoes (timestamp DESC);
+
+CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS set_timestamp ON transacoes;
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON transacoes
+FOR EACH ROW
+EXECUTE FUNCTION trigger_set_timestamp();
+`;
+
+      await pool.query(fallback);
+      res.json({ ok: true, message: 'Migração executada (fallback sem extensão aplicada). Note: uuid default foi removido.' });
+    } catch (err2) {
+      console.error('Fallback de migração também falhou:', err2.message);
+      res.status(500).json({ ok: false, error: err.message, fallback_error: err2.message });
+    }
   }
 });
 
