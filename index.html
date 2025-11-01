@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CFM - Controle Financeiro Moderno</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <style>
+    .password-wrapper {
+      position: relative;
+    }
+    
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s ease;
+    }
+    
+    .password-toggle:hover {
+      color: var(--primary-color);
+    }
+    
+    .password-wrapper input {
+      padding-right: 45px;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 9999;
+      animation: slideIn 0.3s ease;
+      max-width: 350px;
+    }
+
+    .toast.success { border-left: 4px solid #2ecc71; }
+    .toast.error { border-left: 4px solid #e74c3c; }
+
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOut {
+      to { transform: translateX(400px); opacity: 0; }
+    }
+
+    .toast.hide {
+      animation: slideOut 0.3s ease forwards;
+    }
+  </style>
+</head>
+<body class="auth-body">
+  <div class="auth-container">
+    <div class="auth-header">
+      <h1>💰 Controle Financeiro Moderno</h1>
+      <p>Gerencie suas finanças de forma inteligente e moderna</p>
+    </div>
+
+    <div class="auth-tabs">
+      <a href="#login" class="auth-tab active" role="tab" aria-selected="true">Entrar</a>
+      <a href="#cadastro" class="auth-tab" role="tab" aria-selected="false">Criar Conta</a>
+    </div>
+
+    <section id="login" class="auth-section active" role="tabpanel">
+      <div class="form-container">
+        <h2>Entre na sua conta</h2>
+        <form id="form-login" class="auth-form">
+          <div class="input-group">
+            <label for="email-login">E-mail</label>
+            <input type="email" id="email-login" placeholder="seu@email.com" required aria-required="true">
+          </div>
+          <div class="input-group">
+            <label for="senha-login">Senha</label>
+            <div class="password-wrapper">
+              <input type="password" id="senha-login" placeholder="Digite sua senha" required aria-required="true">
+              <button type="button" class="password-toggle" onclick="togglePassword('senha-login', this)" aria-label="Mostrar senha">
+                👁️
+              </button>
+            </div>
+          </div>
+          <div class="form-options">
+            <label class="checkbox-container">
+              <input type="checkbox" id="lembrar-login">
+              <span class="checkmark"></span>
+              Lembrar-me
+            </label>
+          </div>
+          <button type="submit" class="btn-primary">Entrar</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="cadastro" class="auth-section" role="tabpanel">
+      <div class="form-container">
+        <h2>Crie sua conta</h2>
+        <form id="form-cadastro" class="auth-form">
+          <div class="input-group">
+            <label for="nome">Nome Completo</label>
+            <input type="text" id="nome" placeholder="Digite seu nome completo" required aria-required="true">
+          </div>
+          <div class="input-group">
+            <label for="email-cadastro">E-mail</label>
+            <input type="email" id="email-cadastro" placeholder="seu@email.com" required aria-required="true">
+          </div>
+          <div class="input-group">
+            <label for="senha-cadastro">Senha</label>
+            <div class="password-wrapper">
+              <input type="password" 
+                     id="senha-cadastro"
+                     placeholder="Digite uma senha forte" 
+                     required
+                     aria-required="true"
+                     pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}"
+                     title="A senha deve ter no mínimo 8 caracteres, incluindo: uma letra maiúscula, uma minúscula, um número e um caractere especial.">
+              <button type="button" class="password-toggle" onclick="togglePassword('senha-cadastro', this)" aria-label="Mostrar senha">
+                👁️
+              </button>
+            </div>
+            <small class="password-hint">Mínimo 8 caracteres com maiúscula, minúscula, número e símbolo</small>
+          </div>
+          <div class="input-group">
+            <label for="confirmar-senha">Confirmar Senha</label>
+            <div class="password-wrapper">
+              <input type="password" id="confirmar-senha" placeholder="Confirme sua senha" required aria-required="true">
+              <button type="button" class="password-toggle" onclick="togglePassword('confirmar-senha', this)" aria-label="Mostrar senha">
+                👁️
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">Criar Conta</button>
+        </form>
+      </div>
+    </section>
+
+    <div class="auth-footer">
+      <p>&copy; 2025 Controle Financeiro Moderno. Desenvolvido por André Trabachini | Enzo Gabriel | Luis Binelli | Ottone Rusalen</p>
+    </div>
+  </div>
+
+  <script>
+    // Funções auxiliares
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <span style="font-size: 1.2rem;">${type === 'success' ? '✓' : '✕'}</span>
+        <span>${message}</span>
+      `;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function togglePassword(inputId, button) {
+      const input = document.getElementById(inputId);
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        button.textContent = '🙈';
+        button.setAttribute('aria-label', 'Ocultar senha');
+      } else {
+        input.type = 'password';
+        button.textContent = '👁️';
+        button.setAttribute('aria-label', 'Mostrar senha');
+      }
+    }
+
+    // Sistema de usuários
+    // API base (ajuste se necessário)
+    const API_BASE = window.API_BASE || 'http://localhost:4000';
+
+    async function apiRequest(path, opts = {}) {
+      const url = API_BASE + path;
+      const headers = opts.headers || {};
+      headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+      try {
+        console.debug('API request', opts.method || 'GET', url, opts.body || '');
+        const res = await fetch(url, { ...opts, headers });
+        const text = await res.text();
+        let json = null;
+        try { json = JSON.parse(text); } catch (e) { /* not json */ }
+        console.debug('API response', res.status, res.statusText, json || text);
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText} - ${text}`);
+        return json !== null ? json : text;
+      } catch (err) {
+        console.warn('API error', err.message);
+        throw err;
+      }
+    }
+
+    // Navegação entre abas
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        document.querySelectorAll('.auth-tab').forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.auth-section').forEach(s => s.classList.remove('active'));
+        
+        this.classList.add('active');
+        this.setAttribute('aria-selected', 'true');
+        
+        const targetId = this.getAttribute('href').substring(1);
+        document.getElementById(targetId).classList.add('active');
+      });
+    });
+
+    // Cadastro
+    document.getElementById('form-cadastro').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email-cadastro').value.trim();
+      const senha = document.getElementById('senha-cadastro').value;
+      const confirmar = document.getElementById('confirmar-senha').value;
+      
+      if (senha !== confirmar) {
+        showToast('As senhas não coincidem!', 'error');
+        return;
+      }
+      const senhaHash = await hashPassword(senha);
+
+      // Criar no backend; sem fallback local — o banco é a fonte de verdade
+      try {
+        const body = {
+          email: email,
+          name: nome,
+          currency: 'BRL',
+          theme: null,
+          pin_hash: senhaHash
+        };
+        const r = await apiRequest('/users', { method: 'POST', body: JSON.stringify(body) });
+        console.debug('Usuário criado no backend:', r);
+        showToast('Conta criada com sucesso!');
+      } catch (err) {
+        console.error('Falha ao criar usuário no backend:', err.message);
+        showToast('Erro ao criar conta no servidor. Tente novamente.', 'error');
+        return;
+      }
+
+      setTimeout(() => {
+        document.querySelector('[href="#login"]').click();
+        document.getElementById('email-login').value = email;
+      }, 1500);
+    });
+
+    // Login
+    document.getElementById('form-login').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('email-login').value.trim();
+      const senha = document.getElementById('senha-login').value;
+      const lembrar = document.getElementById('lembrar-login').checked;
+
+      const senhaHash = await hashPassword(senha);
+
+      // tentar autenticar via backend primeiro
+      try {
+        const r = await apiRequest(`/users?email=${encodeURIComponent(email)}`, { method: 'GET' });
+        console.debug('Usuário buscado no backend:', r);
+        const backendHash = r.pin_hash || r.pinHash || null;
+        if (!backendHash) {
+          console.warn('Backend não possui hash de senha para este usuário.');
+          throw new Error('Usuário sem credencial no servidor');
+        }
+        if (backendHash !== senhaHash) {
+          showToast('Senha incorreta!', 'error');
+          return;
+        }
+
+        const sessao = { email: r.email, nome: r.name || r.email, loginTime: new Date().toISOString() };
+        // Persistir sessão apenas em sessionStorage (não gravar em localStorage)
+        sessionStorage.setItem('cfm_sessao', JSON.stringify(sessao));
+        showToast('Login realizado com sucesso (backend)!');
+        setTimeout(() => window.location.href = 'app.html', 800);
+        return;
+      } catch (err) {
+        console.warn('Autenticação via backend falhou, tentando local:', err.message);
+      }
+
+      // fallback para autenticação local
+      // Se chegou aqui, o backend falhou; não suportamos login offline no modo apenas-banco
+      showToast('Falha na autenticação (servidor indisponível). Tente novamente mais tarde.', 'error');
+      return;
+    });
+  </script>
+</body>
+</html>

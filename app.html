@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CFM - Painel Financeiro</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <style>
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .menu-toggle {
+        display: block;
+      }
+
+      .main-nav {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 70%;
+        max-width: 300px;
+        height: 100vh;
+        background: var(--bg-header);
+        flex-direction: column;
+        padding: 80px 20px 20px;
+        transition: right 0.3s ease;
+        z-index: 999;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+      }
+
+      .main-nav.active {
+        right: 0;
+      }
+
+      .nav-tab {
+        width: 100%;
+        text-align: left;
+        padding: 15px;
+        margin: 5px 0;
+      }
+
+      .menu-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 998;
+      }
+
+      .menu-overlay.active {
+        display: block;
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+    
+    .empty-state p {
+      margin: 10px 0;
+      font-size: 1rem;
+    }
+    
+    .empty-state p:first-child {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="app-body">
+  <!-- Header com Navegação -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo">
+        <h2>CFM</h2>
+      </div>
+      
+      <button class="menu-toggle" onclick="toggleMenu()" aria-label="Abrir menu de navegação">
+        ☰
+      </button>
+
+      <nav class="main-nav" role="navigation">
+        <a href="#dashboard" class="nav-tab active" role="button" aria-label="Ir para Dashboard">📊 Dashboard</a>
+        <a href="#entradas" class="nav-tab" role="button" aria-label="Ir para Entradas">📈 Entradas</a>
+        <a href="#saidas" class="nav-tab" role="button" aria-label="Ir para Saídas">📉 Saídas</a>
+        <a href="#categorias" class="nav-tab" role="button" aria-label="Ir para Categorias">🗂️ Categorias</a>
+        <a href="#relatorios" class="nav-tab" role="button" aria-label="Ir para Relatórios">📋 Relatórios</a>
+        <a href="#perfil" class="nav-tab" role="button" aria-label="Ir para Perfil">⚙️ Perfil</a>
+      </nav>
+
+      <div class="user-menu">
+        <span class="user-name">Olá, Usuário!</span>
+        <a href="#" class="logout-btn" aria-label="Sair do sistema">Sair</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="menu-overlay" onclick="toggleMenu()"></div>
+
+  <main class="app-main">
+    <!-- Dashboard -->
+    <section id="dashboard" class="app-section active">
+      <div class="section-header">
+        <h1>Dashboard Financeiro</h1>
+        <p>Visão geral das suas finanças</p>
+      </div>
+      
+      <div class="dashboard-grid">
+        <div class="dashboard-card balance">
+          <div class="card-header">
+            <h3>Saldo Total</h3>
+            <span class="card-icon" aria-hidden="true">💰</span>
+          </div>
+          <div class="card-value" aria-label="Saldo total">R$ 0,00</div>
+          <div class="card-change neutral">Sem movimentações</div>
+        </div>
+        
+        <div class="dashboard-card income">
+          <div class="card-header">
+            <h3>Entradas</h3>
+            <span class="card-icon" aria-hidden="true">📈</span>
+          </div>
+          <div class="card-value" aria-label="Total de entradas">R$ 0,00</div>
+          <div class="card-change neutral">Sem entradas</div>
+        </div>
+        
+        <div class="dashboard-card expense">
+          <div class="card-header">
+            <h3>Saídas</h3>
+            <span class="card-icon" aria-hidden="true">📉</span>
+          </div>
+          <div class="card-value" aria-label="Total de saídas">R$ 0,00</div>
+          <div class="card-change neutral">Sem saídas</div>
+        </div>
+        
+        <div class="dashboard-card transactions">
+          <div class="card-header">
+            <h3>Transações</h3>
+            <span class="card-icon" aria-hidden="true">🔄</span>
+          </div>
+          <div class="card-value" aria-label="Total de transações">0</div>
+          <div class="card-change neutral">Este mês</div>
+        </div>
+      </div>
+
+      <div class="dashboard-content">
+        <div class="recent-transactions">
+          <h3>Transações Recentes</h3>
+          <div class="transaction-list">
+            <div class="empty-state">
+              <p>🔭 Nenhuma transação registrada ainda.</p>
+              <p>Comece adicionando suas entradas e saídas!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Entradas -->
+    <section id="entradas" class="app-section">
+      <div class="section-header">
+        <h1>Registrar Entrada</h1>
+        <p>Adicione suas receitas e rendimentos</p>
+      </div>
+      
+      <div class="form-card">
+        <form class="transaction-form">
+          <div class="form-row">
+            <div class="input-group">
+              <label for="desc-entrada">Descrição</label>
+              <input type="text" id="desc-entrada" placeholder="Ex: Salário, Freelance, Vendas..." required aria-required="true">
+            </div>
+            <div class="input-group">
+              <label for="valor-entrada">Valor (R$)</label>
+              <input type="number" id="valor-entrada" placeholder="0,00" step="0.01" min="0" required aria-required="true">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="data-entrada">Data</label>
+              <input type="date" id="data-entrada" required aria-required="true">
+            </div>
+            <div class="input-group">
+              <label for="categoria-entrada">Categoria</label>
+              <select id="categoria-entrada" required aria-required="true">
+                <option value="">Selecione uma categoria</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary full-width">➕ Adicionar Entrada</button>
+        </form>
+      </div>
+
+      <div class="form-card">
+        <h3>Histórico de Entradas</h3>
+        <div class="transaction-list" id="lista-entradas">
+          <div class="empty-state">
+            <p>🔭 Nenhuma entrada registrada ainda.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Saídas -->
+    <section id="saidas" class="app-section">
+      <div class="section-header">
+        <h1>Registrar Saída</h1>
+        <p>Controle seus gastos e despesas</p>
+      </div>
+      
+      <div class="form-card">
+        <form class="transaction-form">
+          <div class="form-row">
+            <div class="input-group">
+              <label for="desc-saida">Descrição</label>
+              <input type="text" id="desc-saida" placeholder="Ex: Supermercado, Combustível..." required aria-required="true">
+            </div>
+            <div class="input-group">
+              <label for="valor-saida">Valor (R$)</label>
+              <input type="number" id="valor-saida" placeholder="0,00" step="0.01" min="0" required aria-required="true">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label for="data-saida">Data</label>
+              <input type="date" id="data-saida" required aria-required="true">
+            </div>
+            <div class="input-group">
+              <label for="categoria-saida">Categoria</label>
+              <select id="categoria-saida" required aria-required="true">
+                <option value="">Selecione uma categoria</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn-danger full-width">➖ Adicionar Saída</button>
+        </form>
+      </div>
+
+      <div class="form-card">
+        <h3>Histórico de Saídas</h3>
+        <div class="transaction-list" id="lista-saidas">
+          <div class="empty-state">
+            <p>🔭 Nenhuma saída registrada ainda.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categorias -->
+    <section id="categorias" class="app-section">
+      <div class="section-header">
+        <h1>Gerenciar Categorias</h1>
+        <p>Organize suas transações por categoria</p>
+      </div>
+      
+      <div class="categories-container">
+        <div class="form-card">
+          <h3>Adicionar Nova Categoria</h3>
+          <form class="category-form">
+            <div class="form-row">
+              <div class="input-group">
+                <label for="nome-categoria">Nome da Categoria</label>
+                <input type="text" id="nome-categoria" placeholder="Digite o nome da categoria" required aria-required="true">
+              </div>
+              <div class="input-group">
+                <label for="tipo-categoria">Tipo</label>
+                <select id="tipo-categoria" required aria-required="true">
+                  <option value="entrada">📈 Entrada</option>
+                  <option value="saida">📉 Saída</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary">➕ Adicionar Categoria</button>
+          </form>
+        </div>
+
+        <div class="categories-list">
+          <h3>Categorias</h3>
+          <div class="category-grid">
+            <!-- Categories will be rendered dynamically from the backend -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Relatórios -->
+    <section id="relatorios" class="app-section">
+      <div class="section-header">
+        <h1>Relatórios Financeiros</h1>
+        <p>Análise detalhada das suas finanças</p>
+      </div>
+      
+      <div class="reports-container">
+        <div class="report-filters">
+          <div class="filter-group">
+            <label for="periodo">Período</label>
+            <select id="periodo" aria-label="Selecionar período do relatório">
+              <option value="mes">Este Mês</option>
+              <option value="trimestre">Este Trimestre</option>
+              <option value="ano">Este Ano</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="categoria-filtro">Categoria</label>
+            <select id="categoria-filtro" aria-label="Filtrar por categoria">
+              <option value="todas">Todas as Categorias</option>
+              <option value="alimentacao">Alimentação</option>
+              <option value="transporte">Transporte</option>
+              <option value="lazer">Lazer</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="report-summary">
+          <div class="summary-card">
+            <h4>Resumo do Período</h4>
+            <div class="summary-item">
+              <span>Total de Entradas:</span>
+              <span class="neutral">R$ 0,00</span>
+            </div>
+            <div class="summary-item">
+              <span>Total de Saídas:</span>
+              <span class="neutral">R$ 0,00</span>
+            </div>
+            <div class="summary-item">
+              <span>Saldo do Período:</span>
+              <span class="neutral">R$ 0,00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Perfil -->
+    <section id="perfil" class="app-section">
+      <div class="section-header">
+        <h1>Configurações do Perfil</h1>
+        <p>Personalize sua experiência</p>
+      </div>
+      
+      <div class="profile-container">
+        <div class="form-card">
+          <h3>Informações Pessoais</h3>
+          <form class="profile-form">
+            <div class="form-row">
+              <div class="input-group">
+                <label for="nome-perfil">Nome Completo</label>
+                <input type="text" id="nome-perfil" placeholder="Digite seu nome completo" aria-label="Nome completo">
+              </div>
+              <div class="input-group">
+                <label for="email-perfil">E-mail</label>
+                <input type="email" id="email-perfil" placeholder="Digite seu e-mail" aria-label="E-mail">
+              </div>
+            </div>
+            <button type="submit" class="btn-primary">💾 Salvar Alterações</button>
+          </form>
+        </div>
+
+        <div class="form-card">
+          <h3>Preferências</h3>
+          <form class="preferences-form">
+            <div class="input-group">
+              <label for="moeda">Moeda Principal</label>
+              <select id="moeda" aria-label="Selecionar moeda">
+                <option value="BRL">🇧🇷 Real Brasileiro (R$)</option>
+                <option value="USD">🇺🇸 Dólar Americano ($)</option>
+                <option value="EUR">🇪🇺 Euro (€)</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="tema">Tema da Interface</label>
+              <select id="tema" aria-label="Selecionar tema">
+                <option value="claro">☀️ Tema Claro</option>
+                <option value="escuro">🌙 Tema Escuro</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="pin">PIN de Acesso (opcional)</label>
+              <input type="password" id="pin" placeholder="Digite um PIN de 4 dígitos" maxlength="4" pattern="[0-9]{4}" aria-label="PIN de acesso">
+            </div>
+            <button type="submit" class="btn-primary">💾 Salvar Preferências</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>&copy; 2025 Controle Financeiro Moderno. Desenvolvido por André Trabachini | Enzo Gabriel | Luis Binelli | Ottone Rusalen</p>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const nav = document.querySelector('.main-nav');
+      const overlay = document.querySelector('.menu-overlay');
+      nav.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+
+    // Fechar menu ao clicar em um link
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          toggleMenu();
+        }
+      });
+    });
+  </script>
+
+  <script src="app.js"></script>
+</body>
+</html>
