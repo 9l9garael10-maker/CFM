@@ -139,7 +139,10 @@ function salvarDados() {
 }
 
 // API base (ajuste se necessário)
-const API_BASE = window.API_BASE || 'http://localhost:4000';
+// Se window.API_BASE for definido, usa ele. Em produção (servindo o front e API da mesma origem)
+// deixamos vazio para usar paths relativos. Durante desenvolvimento local assumimos
+// que a API está em http://localhost:4000.
+const API_BASE = window.API_BASE || (typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:4000' : '');
 
 async function apiRequest(path, opts = {}) {
   const url = API_BASE + path;

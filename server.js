@@ -5,8 +5,20 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 
-const DEFAULT_DB = process.env.DATABASE_URL || 'postgresql://postgres:031119@localhost:5432/gestao';
-const connectionString = DEFAULT_DB;
+// Ler e sanitizar a connection string do ambiente.
+// Alguns provedores ou uploads acidentais colocam várias variáveis em um único valor
+// (ex.: "postgresql://.../cfm\nPORT=4000"). Detectamos e cortamos tudo após a primeira linha/whitespace.
+const rawDb = process.env.DATABASE_URL || 'postgresql://postgres:031119@localhost:5432/gestao';
+let connectionString = rawDb;
+if (typeof rawDb === 'string') {
+  // cortar em quebras de linha e espaços extras; usar o primeiro token
+  const firstLine = rawDb.split(/\r?\n/)[0];
+  const firstToken = firstLine.split(/\s+/)[0];
+  if (firstToken !== rawDb) {
+    console.warn('DATABASE_URL parece conter conteúdo extra; usando apenas o primeiro token. Verifique suas variáveis de ambiente. (valor truncado)');
+  }
+  connectionString = firstToken.trim();
+}
 // Neon/Postgres on cloud requires SSL. Usamos ssl: { rejectUnauthorized: false } para compatibilidade
 // (em produção, prefira validar certificados/CA corretamente).
 const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false }, idleTimeoutMillis: 30000 });
@@ -14,6 +26,10 @@ const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false }, id
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Servir arquivos estáticos do frontend (index.html, app.js, style.css)
+const staticDir = path.join(__dirname);
+app.use(express.static(staticDir));
 
 const PORT = process.env.PORT || 4000;
 
